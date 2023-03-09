@@ -2,7 +2,7 @@
 [![Maintainer](https://img.shields.io/badge/Maintainer-davidmeijer-blue)](https://github.com/davidmeijer)
 [![Generic badge](https://img.shields.io/badge/Version-alpha-green.svg)](https://shields.io/)
 
-# spectacles
+# COMET: COmparative Molecular Enrichment Tool
 
 <img src="https://github.com/moltools/COMET/blob/main/logo.png" alt="logo" width="100">
 
