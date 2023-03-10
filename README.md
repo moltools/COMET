@@ -6,7 +6,7 @@
 
 <img src="https://github.com/moltools/COMET/blob/main/logo.png" alt="logo" width="100">
 
-*COMET* is a Python library for extracting comparative enriched substructures from groups of molecules.
+COMET (COmparative Molecular Enrichment Tool) is a Python library for extracting comparative enriched substructures from groups of molecules.
 
 ## Installing
 
@@ -18,7 +18,7 @@ Now you can use COMET on the command line (run `comet -h` for help) and you can 
 
 ### Input file
 
-COMET needs an input file in tsv or csv format. An example input file can be seen in `data/example.csv`. 
+COMET needs an input file in `tsv` or `csv` format. An example input file can be seen in `data/example.csv`. 
 
 A header is optional and the presence of a header in the input file can be flagged with `--header` when using COMET on the command line.
 
@@ -26,7 +26,9 @@ There is no limit on the number of molecule groups in the input file. Individual
 
 ### Running COMET
 
-COMET requires setting the path to the input file with `-i`/`--input` and setting the path to the output file with `-o`/`--output`. 
+COMET requires setting the path to the input file and the output file, with:
+* `-i`/`--input`: input file path. 
+* `-o`/`--output`: output file path. 
 
 There are several optional parameters:
 * `-a`/`--alpha`: significance threshold (default: `0.05`).
@@ -35,4 +37,5 @@ There are several optional parameters:
 * `-c`/`--mtc`: multiple testing correction type (default: `bonferroni`).
 
 COMET can be run on the example input as follows to get the same results as in `data/example.out`:
+
 `comet -i ./data/example.csv --header -o ./data/example.out -a 0.1`
