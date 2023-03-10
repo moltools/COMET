@@ -13,12 +13,14 @@ def cli() -> argparse.Namespace:
     -------
     argparse.Namespace -- parsed command line arguments.
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog="comet",
+        description="COMET: COmparative Molecular Enrichment Tool")
 
     # Required arguments.
     parser.add_argument(
         "-i", "--input", type=str, required=True,
-        help="Path to input file with lines as `id\tgroup_id\tsmiles\n`.")
+        help="Path to input file with lines as `smiles_id\\tgroup_id\\tsmiles\\n`.")
     parser.add_argument(
         "-o", "--output", type=str, required=True,
         help="Path to output tsv file.")
