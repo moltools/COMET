@@ -6,7 +6,7 @@
 
 <img src="https://github.com/moltools/COMET/blob/main/logo.png" alt="logo" width="100">
 
-COMET (COmparative Molecular Enrichment Tool) is a Python library for extracting comparative enriched substructures from groups of molecules.
+COMET (COmparative Molecular Enrichment Tool) is a Python library and command line tool for extracting comparative enriched substructures from groups of molecules.
 
 ## Installing
 
