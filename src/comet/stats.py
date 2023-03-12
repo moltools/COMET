@@ -42,7 +42,7 @@ def bit_enrichment(
 
     Returns
     -------
-    None
+    (adjusted p-values (np.array), significant bits (np.array)) tuple
     """
     assert (len(group_barcodes.shape) == 2), (
         f"Group barcodes array should be of shape (N, M): found `{group_barcodes.shape}`")
