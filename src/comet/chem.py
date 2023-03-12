@@ -99,6 +99,17 @@ def get_bit_smarts(
     bits: np.array
 ) -> ty.Any:    
     """
+    Extract corresponding SMARTS from mol when given a bit index for barcode.
+
+    Arguments
+    ---------
+    mol (Chem.Mol) -- molecular graph.
+    bit_info (dict) -- bit setting info for mol as { int: (atom_idx (int), radius (int)), ... }.
+    bits (int list) -- bits to retrieve SMARTS for, if present in bit_info. 
+
+    Returns
+    -------
+    (bit index (int), SMARTS (str)) tuple -- resulting SMARTS for every bit.
     """
     temp_mol = deepcopy(mol)
 
