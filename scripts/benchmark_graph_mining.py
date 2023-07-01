@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse 
 import typing as ty
 from collections import defaultdict
 from itertools import chain, combinations
@@ -11,8 +12,30 @@ from rdkit import Chem, DataStructs
 from rdkit.Chem import rdmolops
 from rdkit.Chem import AllChem
 
+from comet import bit_enrichment, mol_to_barcode, get_bit_smarts
+
 
 Graph = ty.Dict[int, ty.List[int]]
+
+
+# argparse with two subparsers that determine mode:
+def parse_args() -> argparse.Namespace:
+    """
+    Parse command line arguments.
+
+    Arguments
+    ---------
+    None
+
+    Returns
+    -------
+    argparse.Namespace -- parsed command line arguments.
+    """
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="mode")
+    mode1_parser = subparsers.add_parser("naive_mode", help="naive mode")
+    mode2_parser = subparsers.add_parser("fingerprint_mode", help="fingerprint mode")
+    return parser.parse_args()
 
 
 def smi_to_mol(smi: str) -> Chem.Mol:
@@ -275,26 +298,47 @@ def encode_smi(smi: str, radius: int = 2, nbits: int = 2048) -> int:
 
 
 def main() -> None:
-    smi = r"CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+    args = parse_args()
+    # smi = r"CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+    smi = r"CCC"
+
+    if args.mode == "naive_mode":
+        mol = smi_to_mol(smi)
+        graph = mol_to_graph(mol)
+
+        submols = set()
+        success, failed = 0, 0
+        for subgraph in tqdm(all_subgraphs(graph), leave=True):
+            try:
+                atom_inds = list(subgraph.keys())
+                submol = get_submol(mol, atom_inds)
+                submol_smi = Chem.MolToSmiles(submol)
+                enc = encode_smi(submol_smi)
+                submols.add(enc)
+                success += 1
+            except:
+                failed += 1
+
+    elif args.mode == "fingerprint_mode":
+        mol = Chem.MolFromSmiles(smi)
+        bits, bit_info = mol_to_barcode(mol, num_bits=2048, radius=2)
+
+        submols = set()
+        success, failed = 0, 0        
+        for bit, smarts in tqdm(get_bit_smarts(mol, bit_info, bits), leave=True):
+            try:
+                enc = encode_smi(smarts)
+                submols.add(enc)
+                success += 1
+            except:
+                failed += 1
     
-    mol = smi_to_mol(smi)
-    graph = mol_to_graph(mol)
-
-    submols = set()
-    success, failed = 0, 0
-    for subgraph in tqdm(all_subgraphs(graph), leave=True):
-        try:
-            atom_inds = list(subgraph.keys())
-            submol = get_submol(mol, atom_inds)
-            submol_smi = Chem.MolToSmiles(submol)
-            enc = encode_smi(submol_smi)
-            submols.add(enc)
-            success += 1
-        except:
-            failed += 1
-
+    else:
+        raise ValueError(f"Unknown mode: {args.mode}")
+    
     print(f"Success: {success}/{success + failed} ({success / (success + failed):.2%})")
     print(f"Unique submols: {len(submols)}")
+
     exit(0)
 
 
