@@ -302,19 +302,22 @@ def main() -> None:
     # smi = r"CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
     smi = r"CCC"
 
+    submol_encs, submols = set(), set()
+    success, failed = 0, 0
+
     if args.mode == "naive_mode":
         mol = smi_to_mol(smi)
         graph = mol_to_graph(mol)
 
-        submols = set()
-        success, failed = 0, 0
         for subgraph in tqdm(all_subgraphs(graph), leave=True):
             try:
                 atom_inds = list(subgraph.keys())
                 submol = get_submol(mol, atom_inds)
                 submol_smi = Chem.MolToSmiles(submol)
                 enc = encode_smi(submol_smi)
-                submols.add(enc)
+                if not enc in submol_encs:
+                    submols.add(submol_smi)
+                    submol_encs.add(enc)
                 success += 1
             except:
                 failed += 1
@@ -322,13 +325,13 @@ def main() -> None:
     elif args.mode == "fingerprint_mode":
         mol = Chem.MolFromSmiles(smi)
         bits, bit_info = mol_to_barcode(mol, num_bits=2048, radius=2)
-
-        submols = set()
-        success, failed = 0, 0        
-        for bit, smarts in tqdm(get_bit_smarts(mol, bit_info, bits), leave=True):
+     
+        for _, smarts in tqdm(get_bit_smarts(mol, bit_info, bits), leave=True):
             try:
                 enc = encode_smi(smarts)
-                submols.add(enc)
+                if not enc in submol_encs:
+                    submols.add(smarts)
+                    submol_encs.add(enc)
                 success += 1
             except:
                 failed += 1
