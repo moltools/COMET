@@ -111,11 +111,10 @@ def get_bit_smarts(
     -------
     (bit index (int), SMARTS (str)) tuple -- resulting SMARTS for every bit.
     """
-    temp_mol = deepcopy(mol)
-
     for bit in np.nonzero(bits)[0]:
         if bit_setters := bit_info.get(bit, None):
             for atom_idx, radius in bit_setters:
+                temp_mol = deepcopy(mol)
                 env = Chem.FindAtomEnvironmentOfRadiusN(temp_mol, radius, atom_idx)
                 atoms_to_use = set((atom_idx,))
                 for bond in env:
@@ -125,7 +124,7 @@ def get_bit_smarts(
 
                 enlarged_env = set()
                 for atom_idx in atoms_to_use:
-                    atom = temp_mol.GetAtomWithIdx(atom_idx)
+                    atom = temp_mol.GetAtomWithIdx(atom_idx)    
                     for bond in atom.GetBonds():
                         bond_idx = bond.GetIdx()
                         if bond_idx not in env:
@@ -134,7 +133,6 @@ def get_bit_smarts(
                 enlarged_env = list(enlarged_env)
                 enlarged_env += env 
 
-                # Find all relevant neighbors.
                 neighboring_atoms = []
                 for atom_idx in atoms_to_use:
                     neighbors = temp_mol.GetAtomWithIdx(atom_idx).GetNeighbors()
@@ -145,10 +143,10 @@ def get_bit_smarts(
 
                 # Replace atom numbers with zero (i.e., highlight atoms as 
                 # `any atom` a.k.a wildcard).
-                for neighbor_idx in neighboring_atoms:
-                    temp_mol.GetAtomWithIdx(neighbor_idx).SetAtomicNum(0)
+                for atom_idx in neighboring_atoms:
+                    temp_mol.GetAtomWithIdx(atom_idx).SetAtomicNum(0)
+
                 submol = Chem.PathToSubmol(temp_mol, enlarged_env)
-                
                 smarts = Chem.MolToSmarts(submol)
                 smarts = smarts.replace("[#0]", "*")
                 smarts = smarts.replace("[#0H]", "*")

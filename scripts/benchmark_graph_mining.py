@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 import numpy as np
 
-from rdkit import Chem, DataStructs 
+from rdkit import Chem, DataStructs, RDLogger
 from rdkit.Chem import rdmolops
 from rdkit.Chem import AllChem
 
@@ -298,9 +298,11 @@ def encode_smi(smi: str, radius: int = 2, nbits: int = 2048) -> int:
 
 
 def main() -> None:
+    RDLogger.DisableLog("rdApp.*")
+
     args = parse_args()
-    # smi = r"CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
-    smi = r"CCC"
+    smi = r"CC1(C(N2C(S1)C(C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+    # smi = r"CCC"
 
     submol_encs, submols = set(), set()
     success, failed = 0, 0
@@ -334,7 +336,17 @@ def main() -> None:
                     submol_encs.add(enc)
                 success += 1
             except:
-                failed += 1
+                try:
+                    # Replace aromatic bonds with wildcard bonds when mol cannot
+                    # be created due to failing kekulization:
+                    smarts = smarts.replace(":", "~")
+                    enc = encode_smi(smarts)
+                    if not enc in submol_encs:
+                        submols.add(smarts)
+                        submol_encs.add(enc)
+                    success += 1
+                except:
+                    failed += 1
     
     else:
         raise ValueError(f"Unknown mode: {args.mode}")
