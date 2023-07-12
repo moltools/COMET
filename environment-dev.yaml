@@ -1,0 +1,19 @@
+name: comet
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.9
+  - pip
+
+  # Dependencies
+  - numpy
+  - matplotlib
+  - rdkit 
+  - tqdm
+
+  - pip:
+    # Install COMET in editable mode
+    - -e .

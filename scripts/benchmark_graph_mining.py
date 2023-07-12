@@ -8,6 +8,11 @@ from tqdm import tqdm
 
 import numpy as np
 
+import matplotlib.pyplot as plt 
+from matplotlib.colors import LinearSegmentedColormap
+colors = [(1, 1, 1), (1, 0, 0)]  # White to red
+cmap = LinearSegmentedColormap.from_list('WhiteRed', colors)
+
 from rdkit import Chem, DataStructs, RDLogger
 from rdkit.Chem import rdmolops
 from rdkit.Chem import AllChem
@@ -297,6 +302,47 @@ def encode_smi(smi: str, radius: int = 2, nbits: int = 2048) -> int:
     return mol_to_encoding(mol, radius, nbits)
 
 
+def make_smiles_heatmap(smiles: str, data: ty.List[float]) -> None:
+    """
+    Make a heatmap of SMILES strings.
+    
+    Args:
+        smiles (str): SMILES strings.
+        data (ty.List[float]): Values.
+        
+    Returns:
+        None
+    """
+    data = np.array([data])
+
+    # Create the labels
+    labels = [char for char in smiles]
+
+    fig, ax = plt.subplots()
+
+    # Create the heatmap
+    heatmap = ax.imshow(data, cmap=cmap, aspect='auto', vmin=0)
+
+    # Set the aspect ratio to adjust the height of the row
+    ax.set_aspect('equal')
+
+    # Set the ticks and labels for the x-axis
+    ax.set_xticks(np.arange(len(labels)))
+    ax.set_xticklabels(labels)
+
+    # Set the ticks and labels for the y-axis
+    ax.set_yticks([])
+
+    # Add colorbar
+    # cbar = plt.colorbar(heatmap)
+
+    # Adjust the figure size based on the character width and height
+    fig.set_size_inches(len(labels), 1)
+
+    # Show the plot
+    plt.show()
+
+
 def main() -> None:
     RDLogger.DisableLog("rdApp.*")
 
@@ -353,6 +399,38 @@ def main() -> None:
     
     print(f"Success: {success}/{success + failed} ({success / (success + failed):.2%})")
     print(f"Unique submols: {len(submols)}")
+
+    # Make heatmap
+    # ~~~~~~~~~~~~
+
+    # Make sure atoms in SMILES are in same order as their atom indices:
+    mol = Chem.MolFromSmiles(Chem.MolToSmiles(Chem.MolFromSmiles(smi), canonical=True))
+
+    counts = dict()
+    for atom in mol.GetAtoms():
+        atom.SetAtomMapNum(atom.GetIdx() + 1)
+    for submol in submols:
+        func = Chem.MolFromSmarts if args.mode == "fingerprint_mode" else Chem.MolFromSmiles
+        if matches := mol.GetSubstructMatches(func(submol)):
+            for match in matches:
+                for idx in match:
+                    counts[idx] = counts.get(idx, 0) + 1
+    for atom in mol.GetAtoms():
+        atom.SetAtomMapNum(0)
+
+    smi = Chem.MolToSmiles(mol, canonical=True)
+
+    # Make sure counts are in same order as atoms in SMILES:
+    data = []
+    alpha_idx = 0
+    for char in smi:
+        if char.isalpha():
+            data.append(counts.get(alpha_idx, 0))
+            alpha_idx += 1
+        else:
+            data.append(0)
+
+    make_smiles_heatmap(smi, data)
 
     exit(0)
 
